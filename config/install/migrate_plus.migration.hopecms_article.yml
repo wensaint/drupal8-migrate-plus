@@ -1,0 +1,69 @@
+# Migration configuration for beer content.
+id: hopecms_article
+label: hopecms articles migrattion
+migration_group: hopecms
+source:
+  plugin: hope_article
+destination:
+  plugin: entity:node
+  default_bundle: article
+process:
+  # Hardcode the destination node type (bundle) as 'article'.
+  type:
+    plugin: default_value
+    default_value: article
+  title: Title
+  nid: GeneralID
+  uid:
+    plugin: default_value
+    default_value: 1
+  sticky:
+    plugin: default_value
+    default_value: 0
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    source: InputTime
+    callable: strtotime
+  changed:
+    plugin: callback
+    source: UpdateTime
+    callable: strtotime
+  field_orderlevel:
+    plugin: default_value
+    default_value: 0
+  field_author: Author
+  field_subtitle: SubTitle
+  field_node: NodeID
+  'field_redirecturl/uri': URLRedirect
+  # Some Drupal fields may have multiple components we may want to set
+  # separately. For example, text fields may have summaries (teasers) in
+  # addition to the full text value. We use / to separate the field name from
+  # the internal field value being set, and put it in quotes because / is a
+  # YAML special character.
+  'body/value': Content
+  'body/format': 
+    plugin: default_value
+    default_value: full_html    
+  # 'body/summary': excerpt
+# Our beer nodes have references to terms and users, so we want those to be
+# imported first. We make that dependency explicit here - by putting those
+# migrations under the 'required' key, we ensure that the tools will prevent
+# us from running the beer_node migration unless the beer_term and beer_user
+# migrations are complete (although we can override the dependency check by
+# passing --force to the drush migrate-import command). We can also add
+# 'optional' dependencies - these affect the order in which migrations are
+# displayed, and run by default, but does not force you run them in that
+# order.
+# The general rule of thumb is that any migrations referenced by migration
+# process plugins should be required here.
+migration_dependencies:
+  required:
+    - hopecms_node
+dependencies:
+  enforced:
+    module:
+      - migrate_hopecms_db
+      - node
